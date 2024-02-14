@@ -27,23 +27,20 @@ class WeedDataset(Dataset):
         image = iio.imread(img_name)
 
         # Convert NumPy array to PIL Image
-        image = Image.fromarray(image)
+        pil_image = Image.fromarray(image)
 
         annotations = []
         for jsonObj in self.json["annotations"]:
             if jsonObj["image_id"] == idx:
                 annotations.append(jsonObj)
 
-        sample = {'image': image, 'annotations': annotations}
-
         boxes = []
         # labels = []
-        for obj in sample['annotations']:
-            xmin, ymin, w, h = obj['bbox']
+        for ann in annotations:
+            xmin, ymin, w, h = ann['bbox']
             xmax = xmin + w
             ymax = ymin + h
             boxes.append([xmin, ymin, xmax, ymax])  # Create bounding box tensor
-            # labels.append(obj['category_id'])       # Extract class label
 
         # Transform data into proper tensors
         boxes = torch.as_tensor(boxes, dtype=torch.float32)
@@ -54,12 +51,24 @@ class WeedDataset(Dataset):
         if num_boxes < max_detections:
             boxes = torch.nn.functional.pad(boxes, (0, 0, 0, max_detections - num_boxes))
 
-        # labels = torch.as_tensor(labels, dtype=torch.int64)
-
-        # Construct the target dictionary
-        # target = {"boxes": boxes, "labels": labels}
-
         if self.transform:
-            image = self.transform(image)
+            image = self.transform(pil_image)
+
+            image_width, image_height = (128, 128)
+
+            print(boxes)
+
+            for box in boxes:
+                x1, y1, x2, y2 = box.tolist()
+
+                # Calculate how much was cropped:
+                crop_left = (image_width - 128) // 2
+                crop_top = (image_height - 128) // 2
+
+                # Adjust bounding box coordinates
+                box[0] = max(0, x1 - crop_left)
+                box[1] = max(0, y1 - crop_top)
+                box[2] = min(image_width, x2 - crop_left)
+                box[3] = min(image_height, y2 - crop_top)
 
         return image, boxes

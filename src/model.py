@@ -8,14 +8,16 @@ class WeedDetector(torch.nn.Module):
         super().__init__()
 
         # 1. backbone
-        self.backbone = torchvision.models.resnet34(pretrained=False)
+        self.backbone = torchvision.models.resnet34(weights=None)
         # remove the last fully connected layer for classification
         self.backbone = torch.nn.Sequential(*list(self.backbone.children())[:-1])
+
+        self.channel_adjustment = torch.nn.Conv2d(512, 18, kernel_size=1, stride=1)
 
         # 2. Region Proposal Network (RPN)
         num_anchors = 9
         self.rpn = torch.nn.Sequential(
-            torch.nn.Conv2d(512, 320, kernel_size=3, stride=1, padding=1),
+            torch.nn.Conv2d(18, 320, kernel_size=3, stride=1, padding=1),
             torch.nn.ReLU(),
 
             # objectness classification (2 scores per anchor: object or background)
@@ -41,6 +43,7 @@ class WeedDetector(torch.nn.Module):
     # 4. forward pass method
     def forward(self, images, targets=None):
         x = self.backbone(images)  # Backbone feature extraction
+        x = self.channel_adjustment(x) # Reduce channels to 18
         proposals = self.rpn(x)  # Generate object proposals
 
         # ROI Align
