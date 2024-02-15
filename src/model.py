@@ -3,69 +3,34 @@ import torchvision
 from torch import ops
 
 
-class WeedDetector(torch.nn.Module):
+class WeedDetectorCNN(torch.nn.Module):
     def __init__(self, num_classes):
         super().__init__()
 
-        # 1. backbone
         self.backbone = torchvision.models.resnet34(weights=None)
-        # remove the last fully connected layer for classification
         self.backbone = torch.nn.Sequential(*list(self.backbone.children())[:-1])
 
         self.channel_adjustment = torch.nn.Conv2d(512, 18, kernel_size=1, stride=1)
 
-        # 2. Region Proposal Network (RPN)
-        num_anchors = 9
-        self.rpn = torch.nn.Sequential(
-            torch.nn.Conv2d(18, 320, kernel_size=3, stride=1, padding=1),
-            torch.nn.ReLU(),
-
-            # objectness classification (2 scores per anchor: object or background)
-            torch.nn.Conv2d(320, 2 * num_anchors, kernel_size=1, stride=1),
-
-            # bounding box regression (4 adjustments per anchor)
-            torch.nn.Conv2d(320, 4 * num_anchors, kernel_size=1, stride=1),
-        )
-
-        # 3. classifier and Regressor Heads
         self.classifier = torch.nn.Sequential(
-            torch.nn.Linear(320 * 7 * 7, 4096),
+            torch.nn.Flatten(),
+            torch.nn.Linear(100, 4096),  # Input features adjusted
             torch.nn.ReLU(),
             torch.nn.Linear(4096, num_classes)
         )
 
-        self.regressor = torch.nn.Sequential(
-            torch.nn.Linear(320 * 7 * 7, 4096),
-            torch.nn.ReLU(),
-            torch.nn.Linear(4096, num_classes * 4)  # *4 for bbox coordinates
-        )
+    def forward(self, images):
+        batch_size, num_sub_images, channels, height, width = images.shape
 
-    # 4. forward pass method
-    def forward(self, images, targets=None):
-        x = self.backbone(images)  # Backbone feature extraction
-        x = self.channel_adjustment(x) # Reduce channels to 18
-        proposals = self.rpn(x)  # Generate object proposals
+        # Reshape  to make your sub-images compatible with ResNet
+        images = images.reshape(batch_size * num_sub_images, channels, height, width)
 
-        # ROI Align
-        pooled_features = ops.roi_align(
-            x,  # Input feature map
-            proposals,
-            output_size=7,  # Output feature map size
-            spatial_scale=1.0,  # Feature map scale
-        )
+        x = self.backbone(images)
+        x = self.channel_adjustment(x)
+        class_logits = self.classifier(x)
 
-        class_logits = self.classifier(pooled_features)
-        box_regression = self.regressor(pooled_features)
+        return class_logits
 
-        # If in training mode, calculate classification and bounding box losses
-        if targets is not None:
-            loss_classifier, loss_box_reg = self.calculate_losses(class_logits, box_regression, targets)
-            return loss_classifier, loss_box_reg
-
-        # If in inference mode, return predictions based on class_logits and box_regression
-        return class_logits, box_regression
-
-    # 5. basic training loss function
     def calculate_losses(class_logits, box_regression, targets):
         # Simplified for basic functionality - to be refined
         loss_classifier = torch.nn.CrossEntropyLoss()(class_logits, targets['labels'])
