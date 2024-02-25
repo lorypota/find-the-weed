@@ -14,7 +14,7 @@ class WeedDetectorCNN(torch.nn.Module):
 
         self.classifier = torch.nn.Sequential(
             torch.nn.Flatten(),
-            torch.nn.Linear(100, 4096),  # Input features adjusted
+            torch.nn.Linear(100, 4096),
             torch.nn.ReLU(),
             torch.nn.Linear(4096, num_classes)
         )
@@ -22,7 +22,7 @@ class WeedDetectorCNN(torch.nn.Module):
     def forward(self, images):
         batch_size, num_sub_images, channels, height, width = images.shape
 
-        # Reshape  to make your sub-images compatible with ResNet
+        # To make sub-images compatible with ResNet
         images = images.reshape(batch_size * num_sub_images, channels, height, width)
 
         x = self.backbone(images)
@@ -32,7 +32,6 @@ class WeedDetectorCNN(torch.nn.Module):
         return class_logits
 
     def calculate_losses(class_logits, box_regression, targets):
-        # Simplified for basic functionality - to be refined
         loss_classifier = torch.nn.CrossEntropyLoss()(class_logits, targets['labels'])
         loss_box_reg = torch.nn.L1Loss()(box_regression, targets['boxes'])
         return loss_classifier, loss_box_reg
