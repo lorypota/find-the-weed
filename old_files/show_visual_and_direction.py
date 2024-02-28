@@ -2,15 +2,13 @@ import math
 
 import cv2
 import numpy as np
-import torch
-import torchvision
 from matplotlib import pyplot as plt
 from torch.utils.data import DataLoader
 from torchvision.transforms import v2
 from torchvision.tv_tensors import BoundingBoxes
 
-from weed_dataset_visual_and_direction import WeedDatasetEvaluation
-from weed_dataset import DividedWeedDataset
+from src.Constants import *
+from old_files.weed_dataset_visual_and_direction import WeedDatasetEvaluation
 
 plots_to_show = 5
 size = 128
@@ -41,25 +39,6 @@ def get_direction(generated_boxes):
 
     return result
 
-
-def collate_fn(batch):  # formats model input to be of the same dimension of batch
-    images = [item[0] for item in batch]
-    targets = [item[1] for item in batch]
-
-    # Concatenates lists of boxes and labels
-    targets = [tgt for tgt in targets]
-
-    return images, targets
-
-
-device = torch.device(
-    "cuda"
-    if torch.cuda.is_available()
-    else "mps"
-    if torch.backends.mps.is_available()
-    else "cpu"
-)
-
 my_transforms = v2.Compose([
     v2.ToTensor(),
     v2.ConvertBoundingBoxFormat(torchvision.tv_tensors.BoundingBoxFormat.XYXY),
@@ -70,7 +49,7 @@ my_transforms = v2.Compose([
 val_dataset = WeedDatasetEvaluation('_annotations.coco.json', '../dataset/test/', transform=my_transforms)
 val_dataloader = DataLoader(val_dataset, batch_size=1, shuffle=True, collate_fn=collate_fn)
 
-model = torch.load("model.pt")
+model = torch.load("../src/models/model_v6.pt")
 model.eval()
 
 to_img = v2.ToPILImage()
@@ -107,9 +86,10 @@ for images, targets in val_dataloader:
         uint8_tensor = (image * 255).clamp(0, 255).to(torch.uint8)
         colors = [(255, 0, 0) for _ in predicted_boxes]
         image = torchvision.utils.draw_bounding_boxes(uint8_tensor,
-                                                      BoundingBoxes(predicted_boxes, canvas_size=(128, 128),
+                                                      BoundingBoxes(predicted_boxes,
+                                                                    canvas_size=(128, 128),
                                                                     format="xyxy").data,
-                                                      colors=colors)
+                                                                    colors=colors)
         colors = [(0, 0, 255) for _ in target["boxes"].data.tolist()]
         image = torchvision.utils.draw_bounding_boxes(image,
                                                       target["boxes"].data,
@@ -118,7 +98,7 @@ for images, targets in val_dataloader:
     # calculate direction of predicted boxes
     res = get_direction(predicted_boxes)
 
-    color = (0, 255, 0)  # Color of the arrow (RGB format)
+    color = (0, 255, 0)  # Color of the arrow (BGR format)
     thickness = 2  # Thickness of the arrow line
     image = to_img(image)
     np_array = np.array(image)

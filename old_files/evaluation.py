@@ -1,10 +1,9 @@
 import torch
-
 from torch.utils.data import DataLoader
-from src.train import my_transforms, batch_size, collate_fn, num_workers, device
-from src.weed_dataset import DividedWeedDataset
+from src.train import batch_size, collate_fn, num_workers, device
+from old_files.weed_dataset import DividedWeedDataset
 
-path = "model.pt"
+path = "../src/models/model_v0.pt"
 model = torch.load(path)
 
 val_dataset = DividedWeedDataset('_annotations.coco.json', 'dataset/test/', transform=my_transforms)
@@ -14,7 +13,6 @@ val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, c
 
 # Set the model in evaluation mode
 model.eval()
-
 
 num = 0
 element_each_time = 8
