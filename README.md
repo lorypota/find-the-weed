@@ -56,12 +56,12 @@ Note that these are only some examples and the model can vary in accuracy.
 
 **Example 1:**
 
-    ![Example 1](https://raw.githubusercontent.com/lorypota/find-the-weed/main/example1.png)
+   ![Example 1](https://raw.githubusercontent.com/lorypota/find-the-weed/main/example1.png)
 
 **Example 2:**
 
-    ![Example 2](https://raw.githubusercontent.com/lorypota/find-the-weed/main/example2.png)
+   ![Example 2](https://raw.githubusercontent.com/lorypota/find-the-weed/main/example2.png)
 
 **Example 3:**
 
-    ![Example 3](https://raw.githubusercontent.com/lorypota/find-the-weed/main/example3.png)
+   ![Example 3](https://raw.githubusercontent.com/lorypota/find-the-weed/main/example3.png)
