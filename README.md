@@ -51,7 +51,7 @@ The evaluation process has been carried out on the 5 trained models.
 This process aims to find the best model in terms of precision and recall. To do so, it is important to study the quantity of true-positives, false-positives and false-negatives predicted by each model.
 In order to calculate these parameters,the models are evaluated on the same set of randomly selected cropped images.
 
-![Models evaluation]()
+![Models evaluation](https://raw.githubusercontent.com/lorypota/find-the-weed/main/models_evaluation.png)
 
 The model n.2 shows the highest precision but with one of the lowest recall.
 The model n.4 is the most balanced in terms of precision and recall, therefore it is likely to be the most useful in most cases.
