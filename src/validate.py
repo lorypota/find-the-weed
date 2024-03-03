@@ -65,12 +65,11 @@ def show_image_and_boxes(images, outputs, targets):
         fig, ax = plt.subplots()
         ax.imshow(image_array)
 
-        plt.title(f"Image Index: test")
         plt.show()
 
 
 if __name__ == "__main__":
-    path = os.path.join(os.getcwd(), "models", "model_v6.pt")
+    path = os.path.join(os.getcwd(), "models", "model_v2.pt")
     model = torch.load(path)
 
     root = os.path.join("../dataset", "test")
@@ -86,8 +85,6 @@ if __name__ == "__main__":
     val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
 
     model.eval()
-    # evaluates the model
-    length = len(val_dataloader) * batch_size
     with torch.no_grad():
         for images_test, targets_test in val_dataloader:
 

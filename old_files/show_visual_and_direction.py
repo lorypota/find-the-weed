@@ -49,7 +49,7 @@ my_transforms = v2.Compose([
 val_dataset = WeedDatasetEvaluation('_annotations.coco.json', '../dataset/test/', transform=my_transforms)
 val_dataloader = DataLoader(val_dataset, batch_size=1, shuffle=True, collate_fn=collate_fn)
 
-model = torch.load("../src/models/model_v6.pt")
+model = torch.load("../src/models/model_v4.pt")
 model.eval()
 
 to_img = v2.ToPILImage()

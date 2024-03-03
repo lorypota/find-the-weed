@@ -28,12 +28,13 @@ class WeedDatasetTransform(Dataset):
     # debug=1 shows full + result image at index without waiting for keyboard input
     # debug=2 shows full + result image at index and all of the steps in between without waiting for keyboard input
     # debug=3 shows full + result image at index and waits for keyboard input after each image
-    def __init__(self, ann_file, root, device, start_size, resized_size, need_weed=True,
+    def __init__(self, ann_file, root, device, start_size, resized_size, always_centered=False, need_weed=True,
                  debug=0, debug_data=False, rotate=True, add_mask=True):
         self.root = root
         self.device = device
         self.start_size = start_size
         self.resized_size = resized_size
+        self.always_centered = always_centered
         self.need_weed = need_weed
         self.debug = debug
         self.debug_data = debug_data
@@ -88,6 +89,8 @@ class WeedDatasetTransform(Dataset):
             debug_img(image, target, self.debug)
 
         loops = 0
+        if self.always_centered:
+            loops = 100
         while True:
             loops += 1
             if loops > 101:
@@ -159,5 +162,7 @@ class WeedDatasetTransform(Dataset):
 
         del image
         del target
+
+        # print(index)
 
         return result_img, result_target

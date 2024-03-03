@@ -13,7 +13,7 @@ learning_rate = 0.00007
 num_classes = 2
 batch_size = 8
 num_workers = 0
-SCORE_THRESHOLD = 0.8
+SCORE_THRESHOLD = 0.7
 
 
 def collate_fn(batch):
